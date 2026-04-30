@@ -81,24 +81,21 @@
 
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyB3CWqVqFw3fw7EOk_uqwZCkbowHZSdRFs",
-    authDomain: "://firebaseapp.com",
+    apiKey: "TU_API_KEY",
+    authDomain: "ruleta-rey-v2.firebaseapp.com",
     projectId: "ruleta-rey-v2",
-    storageBucket: "ruleta-rey-v2.firebasestorage.app",
+    storageBucket: "ruleta-rey-v2.appspot.com",
     messagingSenderId: "925607172632",
     appId: "1:925607172632:web:7f4b59dc96637c3aed416d"
 };
 
-// Inicializamos chequeando que no exista ya una app
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+// 🔥 Inicializar UNA sola vez
+firebase.initializeApp(firebaseConfig);
 
-// Definimos las constantes (REVISÁ QUE NO HAYA OTRAS IGUALES ABAJO)
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- DESPUÉS VIENE TU FUNCIÓN LOGIN ---
+// LOGIN
 function login() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
@@ -106,144 +103,80 @@ function login() {
     if(!email || !pass) return alert("Completa los campos");
 
     auth.signInWithEmailAndPassword(email, pass)
-        .then(() => { 
-            console.log("¡Logueado!"); 
-            // El monitor de sesión se encarga de cambiar la pantalla
-        })
-        .catch((error) => { 
-            alert("Error: " + error.message); 
-        });
+        .catch(e => alert(e.message));
 }
 
-
-// DEFINIR HERRAMIENTAS
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function login() {
-    console.log("Botón presionado"); // Si ves esto en la consola F12, el botón funciona
-    
-    const emailInput = document.getElementById('adminEmail');
-    const passInput = document.getElementById('adminPass');
-
-    if (!emailInput || !passInput) {
-        alert("Error técnico: No se encuentran los campos de texto en el HTML.");
-        return;
-    }
-
-    const email = emailInput.value.trim();
-    const pass = passInput.value.trim();
-
-    if (!email || !pass) {
-        alert("Por favor, completa el usuario y la contraseña.");
-        return;
-    }
-
-    console.log("Intentando entrar con:", email);
-
-    // Usamos firebase.auth() para asegurar compatibilidad con tus scripts
-    firebase.auth().signInWithEmailAndPassword(email, pass)
-        .then(() => {
-            console.log("¡Logueado con éxito!");
-            // El monitor onAuthStateChanged hará el resto
-        })
-        .catch((error) => {
-            // ESTO TE DIRÁ EL ERROR REAL (Ej: Clave mal escrita)
-            alert("Error de Firebase: " + error.message);
-            console.error("Detalle del error:", error.code);
-        });
+// SEGURIDAD
+function seguridadGmail() {
+    const email = document.getElementById('adminEmail').value || (auth.currentUser ? auth.currentUser.email : null);
+    if(!email) return alert("Escribe tu Gmail");
+    auth.sendPasswordResetEmail(email)
+        .then(() => alert("Mail enviado"));
 }
 
-    // SEGURIDAD GMAIL
-    function seguridadGmail() {
-        const email = document.getElementById('adminEmail').value || (auth.currentUser ? auth.currentUser.email : null);
-        if(!email) return alert("Escribe tu Gmail en el campo de usuario");
-        auth.sendPasswordResetEmail(email).then(() => alert("Link de seguridad enviado a tu Gmail."));
-    }
+// CARGAR DATOS
+function cargarDatos() {
+    db.collection("jugadores").orderBy("idCupon", "desc")
+    .onSnapshot(snapshot => {
+        const tabla = document.getElementById("cuerpoTabla");
+        tabla.innerHTML = "";
 
-    // CARGAR CUPONES
-    function cargarDatos() {
-        db.collection("jugadores").orderBy("idCupon", "desc").onSnapshot(snapshot => {
-            const tabla = document.getElementById("cuerpoTabla");
-            tabla.innerHTML = "";
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                const esBloqueado = d.estado === "bloqueado";
-                tabla.innerHTML += `
-                    <tr>
-                        <td>#${d.idCupon}</td>
-                        <td>${d.premio}</td>
-                        <td style="color: ${esBloqueado ? '#fc8181' : '#68d391'}">${esBloqueado ? 'BLOQUEADO' : 'LIBRE'}</td>
-                        <td>
-                            <button class="btn btn-gold" onclick="cambiarEstado('${doc.id}', '${d.estado}')">
-                                ${esBloqueado ? 'LIBERAR' : 'BLOQUEAR'}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        });
-    }
-
-    function cambiarEstado(id, actual) {
-        const nuevo = actual === "bloqueado" ? "liberado" : "bloqueado";
-        db.collection("jugadores").doc(id).update({ estado: nuevo });
-    }
-
-    // --- FUNCIÓN DE RESET TOTAL ---
-    async function resetearTodos() {
-        if(!confirm("¿Estás seguro? Esto permitirá que TODOS los jugadores del historial vuelvan a usar la ruleta.")) return;
-        
-        const snapshot = await db.collection("jugadores").where("estado", "==", "bloqueado").get();
-        const batch = db.batch();
-        
         snapshot.forEach(doc => {
-            batch.update(doc.ref, { estado: "liberado" });
+            const d = doc.data();
+            const bloqueado = d.estado === "bloqueado";
+
+            tabla.innerHTML += `
+            <tr>
+                <td>#${d.idCupon}</td>
+                <td>${d.premio}</td>
+                <td style="color:${bloqueado ? 'red' : 'green'}">
+                    ${bloqueado ? 'BLOQUEADO' : 'LIBRE'}
+                </td>
+                <td>
+                    <button onclick="cambiarEstado('${doc.id}','${d.estado}')">
+                        ${bloqueado ? 'LIBERAR' : 'BLOQUEAR'}
+                    </button>
+                </td>
+            </tr>`;
         });
-
-        await batch.commit();
-        alert("¡Sistema reseteado! Todos los cupones están libres nuevamente.");
-    }
-// --- PASO 3: MONITOR DE SESIÓN ACTUALIZADO ---
-firebase.auth().onAuthStateChanged(user => {
-    const loginScreen = document.getElementById('login-screen');
-    const adminPanel = document.getElementById('admin-panel');
-
-    if (user) {
-        // Si el usuario existe: entramos al panel
-        loginScreen.style.display = 'none';
-        adminPanel.style.display = 'flex';
-        
-        // Mostramos el nombre en la barra lateral (si existe el elemento)
-        if(document.getElementById('userLogged')) {
-            document.getElementById('userLogged').innerText = user.displayName || user.email;
-        }
-        
-        // Cargamos los cupones reales
-        cargarDatos(); 
-        
-    } else {
-        // Si no hay sesión: mostramos login
-        loginScreen.style.display = 'flex';
-        adminPanel.style.display = 'none';
-    }
-});
-
-// FUNCIÓN PARA SALIR
-function logout() { 
-    firebase.auth().signOut().then(() => {
-        location.reload(); // Recarga para volver al login limpio
     });
 }
 
+// CAMBIAR ESTADO
+function cambiarEstado(id, actual) {
+    const nuevo = actual === "bloqueado" ? "liberado" : "bloqueado";
+    db.collection("jugadores").doc(id).update({ estado: nuevo });
+}
+
+// RESET
+async function resetearTodos() {
+    if(!confirm("¿Seguro?")) return;
+
+    const snapshot = await db.collection("jugadores")
+        .where("estado", "==", "bloqueado").get();
+
+    const batch = db.batch();
+
+    snapshot.forEach(doc => {
+        batch.update(doc.ref, { estado: "liberado" });
+    });
+
+    await batch.commit();
+    alert("Todo habilitado");
+}
+
+// SESIÓN
+auth.onAuthStateChanged(user => {
+    document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
+    document.getElementById('admin-panel').style.display = user ? 'flex' : 'none';
+
+    if(user) cargarDatos();
+});
+
+// LOGOUT
+function logout() {
+    auth.signOut();
+}
 </script>
 </body>
 </html>
