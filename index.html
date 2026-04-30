@@ -166,6 +166,26 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+// --- COPIA ESTO ---
+function login() {
+    const userInput = document.getElementById('adminEmail').value.trim();
+    const pass = document.getElementById('adminPass').value.trim();
+
+    if(!userInput || !pass) return alert("Por favor, completa los campos");
+
+    // Truco para entrar solo con nombre de usuario
+    const emailFinal = userInput.includes('@') ? userInput : `${userInput}@casino.com`;
+
+    auth.signInWithEmailAndPassword(emailFinal, pass)
+        .then(() => {
+            console.log("Sesión iniciada");
+        })
+        .catch(e => {
+            console.error(e);
+            alert("Error: Usuario o contraseña incorrectos");
+        });
+}
+// --- HASTA AQUÍ ---
 
 
 // CARGAR DATOS (CORREGIDO PARA TUS DIVS)
