@@ -97,22 +97,37 @@ const app = initializeApp(firebaseConfig)
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // LOGIN
-   function login() {
-    const usuarioIngresado = document.getElementById('adminEmail').value.trim();
-    const pass = document.getElementById('adminPass').value.trim();
+    function login() {
+    console.log("Botón presionado"); // Si ves esto en la consola F12, el botón funciona
+    
+    const emailInput = document.getElementById('adminEmail');
+    const passInput = document.getElementById('adminPass');
 
-    // Si el usuario no escribió un @, le ponemos el dominio por defecto
-    const emailTecnico = usuarioIngresado.includes('@') 
-        ? usuarioIngresado 
-        : usuarioIngresado + "@casino.com";
+    if (!emailInput || !passInput) {
+        alert("Error técnico: No se encuentran los campos de texto en el HTML.");
+        return;
+    }
 
-    auth.signInWithEmailAndPassword(emailTecnico, pass)
+    const email = emailInput.value.trim();
+    const pass = passInput.value.trim();
+
+    if (!email || !pass) {
+        alert("Por favor, completa el usuario y la contraseña.");
+        return;
+    }
+
+    console.log("Intentando entrar con:", email);
+
+    // Usamos firebase.auth() para asegurar compatibilidad con tus scripts
+    firebase.auth().signInWithEmailAndPassword(email, pass)
         .then(() => {
-            console.log("¡Acceso concedido como: " + usuarioIngresado);
+            console.log("¡Logueado con éxito!");
+            // El monitor onAuthStateChanged hará el resto
         })
         .catch((error) => {
-            alert("Acceso denegado. Verificá tu usuario o contraseña.");
+            // ESTO TE DIRÁ EL ERROR REAL (Ej: Clave mal escrita)
+            alert("Error de Firebase: " + error.message);
+            console.error("Detalle del error:", error.code);
         });
 }
 
