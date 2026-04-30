@@ -166,15 +166,38 @@ const app = initializeApp(firebaseConfig)
         await batch.commit();
         alert("¡Sistema reseteado! Todos los cupones están libres nuevamente.");
     }
+// --- PASO 3: MONITOR DE SESIÓN ACTUALIZADO ---
+firebase.auth().onAuthStateChanged(user => {
+    const loginScreen = document.getElementById('login-screen');
+    const adminPanel = document.getElementById('admin-panel');
 
-    // CONTROL DE SESIÓN
-    auth.onAuthStateChanged(user => {
-        document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
-        document.getElementById('admin-panel').style.display = user ? 'flex' : 'none';
-        if(user) cargarDatos();
+    if (user) {
+        // Si el usuario existe: entramos al panel
+        loginScreen.style.display = 'none';
+        adminPanel.style.display = 'flex';
+        
+        // Mostramos el nombre en la barra lateral (si existe el elemento)
+        if(document.getElementById('userLogged')) {
+            document.getElementById('userLogged').innerText = user.displayName || user.email;
+        }
+        
+        // Cargamos los cupones reales
+        cargarDatos(); 
+        
+    } else {
+        // Si no hay sesión: mostramos login
+        loginScreen.style.display = 'flex';
+        adminPanel.style.display = 'none';
+    }
+});
+
+// FUNCIÓN PARA SALIR
+function logout() { 
+    firebase.auth().signOut().then(() => {
+        location.reload(); // Recarga para volver al login limpio
     });
+}
 
-    function logout() { auth.signOut(); }
 </script>
 </body>
 </html>
