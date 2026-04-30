@@ -98,11 +98,23 @@ const app = initializeApp(firebaseConfig)
     const db = firebase.firestore();
 
     // LOGIN
-    function login() {
-        const email = document.getElementById('adminEmail').value;
-        const pass = document.getElementById('adminPass').value;
-        auth.signInWithEmailAndPassword(email, pass).catch(e => alert("Error: " + e.message));
-    }
+   function login() {
+    const usuarioIngresado = document.getElementById('adminEmail').value.trim();
+    const pass = document.getElementById('adminPass').value.trim();
+
+    // Si el usuario no escribió un @, le ponemos el dominio por defecto
+    const emailTecnico = usuarioIngresado.includes('@') 
+        ? usuarioIngresado 
+        : usuarioIngresado + "@casino.com";
+
+    auth.signInWithEmailAndPassword(emailTecnico, pass)
+        .then(() => {
+            console.log("¡Acceso concedido como: " + usuarioIngresado);
+        })
+        .catch((error) => {
+            alert("Acceso denegado. Verificá tu usuario o contraseña.");
+        });
+}
 
     // SEGURIDAD GMAIL
     function seguridadGmail() {
