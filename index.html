@@ -81,6 +81,7 @@
 
 <script>
     // DATOS REALES CONECTADOS
+// Tus datos reales
 const firebaseConfig = {
   apiKey: "AIzaSyB3CWqVqFw3fw7EOk_uqwZCkbowHZSdRFs",
   authDomain: "ruleta-rey-v2.firebaseapp.com",
@@ -89,6 +90,16 @@ const firebaseConfig = {
   messagingSenderId: "925607172632",
   appId: "1:925607172632:web:7f4b59dc96637c3aed416d"
 };
+
+// INICIALIZAR (Forma correcta para tu código)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+// DEFINIR HERRAMIENTAS
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
