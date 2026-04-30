@@ -170,39 +170,38 @@ const db = firebase.firestore();
 
 // LOGIN
 function login() {
-    const email = document.getElementById('adminEmail').value.trim();
+    const emailInput = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
+    // Soporte para entrar solo con nombre de usuario
+    const email = emailInput.includes('@') ? emailInput : emailInput + "@casino.com";
 
-    if(!email || !pass) return alert("Completa los campos");
+    if(!emailInput || !pass) return alert("Completa los campos");
 
     auth.signInWithEmailAndPassword(email, pass)
-        .catch(e => alert(e.message));
+        .catch(e => alert("Error: " + e.message));
 }
 
-// SEGURIDAD
-function seguridadGmail() {
-    const email = document.getElementById('adminEmail').value || (auth.currentUser ? auth.currentUser.email : null);
-    if(!email) return alert("Escribe tu Gmail");
-    auth.sendPasswordResetEmail(email)
-        .then(() => alert("Mail enviado"));
-}
-
+// CARGAR DATOS (CORREGIDO PARA TUS DIVS)
 function cargarDatos() {
+    // IMPORTANTE: idCupon debe existir en tu base de datos para ordenar
     db.collection("jugadores").orderBy("idCupon", "desc").onSnapshot(snapshot => {
-        const contenedor = document.getElementById("cuerpoTabla");
-        contenedor.innerHTML = ""; // Limpiamos
+        const contenedor = document.getElementById("cuerpoTarjetas"); // ID CORREGIDO
+        if (!contenedor) return;
+        
+        contenedor.innerHTML = ""; 
         snapshot.forEach(doc => {
             const d = doc.data();
             const esBloqueado = d.estado === "bloqueado";
             
+            // Usamos la clase card-cupon que ya tienes en tu CSS
             contenedor.innerHTML += `
-                <div class="fila-cupon">
+                <div class="card-cupon">
                     <div class="info-cupon">
                         <span class="status ${esBloqueado ? 'status-bloqueado' : 'status-libre'}">
                             ● ${esBloqueado ? 'BLOQUEADO' : 'LIBRE'}
                         </span>
-                        <h4>#${d.idCupon}</h4>
-                        <p>Premio: ${d.premio}</p>
+                        <h4>#${d.idCupon || '----'}</h4>
+                        <p>Premio: ${d.premio || 'Sin premio'}</p>
                     </div>
                     <button class="btn ${esBloqueado ? 'btn-gold' : 'btn-outline'}" 
                             onclick="cambiarEstado('${doc.id}', '${d.estado}')">
@@ -211,9 +210,10 @@ function cargarDatos() {
                 </div>
             `;
         });
+    }, error => {
+        console.error("Error en Firestore:", error);
     });
 }
-
 
 // CAMBIAR ESTADO
 function cambiarEstado(id, actual) {
@@ -221,34 +221,42 @@ function cambiarEstado(id, actual) {
     db.collection("jugadores").doc(id).update({ estado: nuevo });
 }
 
-// RESET
+// RESET TOTAL
 async function resetearTodos() {
-    if(!confirm("¿Seguro?")) return;
-
-    const snapshot = await db.collection("jugadores")
-        .where("estado", "==", "bloqueado").get();
-
-    const batch = db.batch();
-
-    snapshot.forEach(doc => {
-        batch.update(doc.ref, { estado: "liberado" });
-    });
-
-    await batch.commit();
-    alert("Todo habilitado");
+    if(!confirm("¿Reactivar todos los cupones bloqueados?")) return;
+    try {
+        const snapshot = await db.collection("jugadores").where("estado", "==", "bloqueado").get();
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            batch.update(doc.ref, { estado: "liberado" });
+        });
+        await batch.commit();
+        alert("¡Sistema reseteado!");
+    } catch(e) { alert("Error: " + e.message); }
 }
 
-// SESIÓN
+// MONITOR DE SESIÓN
 auth.onAuthStateChanged(user => {
-    document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
-    document.getElementById('admin-panel').style.display = user ? 'flex' : 'none';
-
-    if(user) cargarDatos();
+    const loginScreen = document.getElementById('login-screen');
+    const adminPanel = document.getElementById('admin-panel');
+    if (user) {
+        loginScreen.style.display = 'none';
+        adminPanel.style.display = 'flex';
+        document.getElementById('userLogged').innerText = user.email.split('@')[0];
+        cargarDatos();
+    } else {
+        loginScreen.style.display = 'flex';
+        adminPanel.style.display = 'none';
+    }
 });
 
-// LOGOUT
-function logout() {
-    auth.signOut();
+function logout() { auth.signOut().then(() => location.reload()); }
+
+function seguridadGmail() {
+    const email = document.getElementById('adminEmail').value || (auth.currentUser ? auth.currentUser.email : null);
+    if(!email) return alert("Escribe tu usuario/mail");
+    const emailFinal = email.includes('@') ? email : email + "@casino.com";
+    auth.sendPasswordResetEmail(emailFinal).then(() => alert("Mail enviado"));
 }
 </script>
 </body>
