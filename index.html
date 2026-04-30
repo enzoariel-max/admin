@@ -126,7 +126,7 @@
     <div id="login-screen">
         <div class="login-box">
             <h2 style="color:var(--gold); margin-bottom:25px;">ADMIN VIP</h2>
-            <input type="email" id="adminEmail" placeholder="Usuario">
+            <input type="text" id="adminUser" placeholder="Nombre de Usuario">
             <input type="password" id="adminPass" placeholder="Contraseña">
             <button class="btn btn-gold" style="width:100%" onclick="login()">ENTRAR</button>
             <p onclick="seguridadGmail()" style="color:var(--text); font-size: 0.8rem; margin-top: 25px; text-decoration: underline; cursor:pointer;">¿Olvidaste la clave?</p>
@@ -167,20 +167,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-
-// LOGIN
-function login() {
-    const emailInput = document.getElementById('adminEmail').value.trim();
-    const pass = document.getElementById('adminPass').value.trim();
-    
-    // Soporte para entrar solo con nombre de usuario
-     const emailFinal = userInput.includes('@') ? userInput : `${userInput}@gmail.com`;
-
-     if(!emailInput || !pass) return alert("Completa los campos");
-    
-    auth.signInWithEmailAndPassword(email, pass)
-        .catch(e => alert("Error: " + e.message));
-}
 
 // CARGAR DATOS (CORREGIDO PARA TUS DIVS)
 function cargarDatos() {
