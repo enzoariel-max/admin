@@ -172,10 +172,10 @@ const db = firebase.firestore();
 function login() {
     const emailInput = document.getElementById('adminEmail').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
-    // Soporte para entrar solo con nombre de usuario
-    const email = emailInput.includes('@') ? emailInput : emailInput + "@casino.com";
 
     if(!emailInput || !pass) return alert("Completa los campos");
+    // Soporte para entrar solo con nombre de usuario
+     const emailFinal = userInput.includes('@') ? userInput : `${userInput}@casino.com`;
 
     auth.signInWithEmailAndPassword(email, pass)
         .catch(e => alert("Error: " + e.message));
