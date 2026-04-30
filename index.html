@@ -175,7 +175,7 @@ function login() {
 
     if(!emailInput || !pass) return alert("Completa los campos");
     // Soporte para entrar solo con nombre de usuario
-     const emailFinal = userInput.includes('@') ? userInput : `${userInput}@casino.com`;
+     const emailFinal = userInput.includes('@') ? userInput : `${userInput}@gmail.com`;
 
     auth.signInWithEmailAndPassword(email, pass)
         .catch(e => alert("Error: " + e.message));
