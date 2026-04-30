@@ -81,20 +81,35 @@
 
 <script>
     // DATOS REALES CONECTADOS
-// Tus datos reales
+// --- UN SOLO BLOQUE DE CONFIGURACIÓN ---
 const firebaseConfig = {
   apiKey: "AIzaSyB3CWqVqFw3fw7EOk_uqwZCkbowHZSdRFs",
-  authDomain: "ruleta-rey-v2.firebaseapp.com",
+  authDomain: "://firebaseapp.com",
   projectId: "ruleta-rey-v2",
   storageBucket: "ruleta-rey-v2.firebasestorage.app",
   messagingSenderId: "925607172632",
   appId: "1:925607172632:web:7f4b59dc96637c3aed416d"
 };
 
-// INICIALIZAR (Forma correcta para tu código)
+// Inicializamos una sola vez
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
+
+// DEFINIMOS LAS VARIABLES UNA SOLA VEZ (Revisá que no estén repetidas abajo)
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- TU FUNCIÓN LOGIN ---
+function login() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const pass = document.getElementById('adminPass').value.trim();
+
+    auth.signInWithEmailAndPassword(email, pass)
+        .then(() => { alert("¡Acceso correcto!"); })
+        .catch((error) => { alert("Error: " + error.message); });
+}
+
 
 // DEFINIR HERRAMIENTAS
 const auth = firebase.auth();
